@@ -1,0 +1,22 @@
+#!/usr/bin/python3
+
+import sys
+import re
+
+def main():
+    io = open(sys.argv[1], 'r')
+    inp = io.readlines()
+
+    parts_re = re.compile(r'(?P<parts>\d*){,}')
+    symbols_re = re.compile(r'(?P<symbols>[^0-9.]*){,}')
+    
+    y = 0
+    for line in inp:
+        parts = parts_re.finditer(line)
+        for part in parts:
+            print(part())
+            print(part.start(), part.end(), y)
+        y += 1
+
+if __name__ == '__main__':
+    main()
