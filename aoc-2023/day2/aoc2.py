@@ -6,6 +6,11 @@ import re
 io = open(sys.argv[1], "r")
 lines = io.readlines()
 
+# Pulling colored cubes out of a bag.
+#
+# Task: Determine the smallest number of cubes each game requires for the input
+# to be valid. The answer is the sum of the power (R * G * B) of each game.
+
 parse_game = re.compile(r"Game (\d*): (.*)$")
 parse_pull = re.compile(r'(?P<number>\d*) (?P<color>red|green|blue)')
 
@@ -14,7 +19,7 @@ power_of_game = []
 for line in lines:
   game = re.match(parse_game, line)
 
-  highest_red = 0 
+  highest_red = 0
   highest_green = 0
   highest_blue = 0
 
@@ -35,7 +40,8 @@ for line in lines:
         case "blue":
           if number_of_cubes > highest_blue:
             highest_blue = number_of_cubes
-  power_of_game.append(highest_red * highest_green * highest_blue) 
+
+  power_of_game.append(highest_red * highest_green * highest_blue)
 
 answer = 0
 for game in power_of_game:

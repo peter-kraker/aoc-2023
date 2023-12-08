@@ -8,13 +8,13 @@ class Card():
     # I thougt I was going to parse outside the constructor... unused
     def __init__(self, card_num, winning, numbers):
         self.card_num = int(card_num)
-        self.winning = winning 
+        self.winning = winning
         self.numbers = numbers
 
 
     # Card Constructor:
     # Takes a line of input, parses the line, and builds a 'Card' object
-    # 
+    #
     # self.winning initially is the set of all winning numbers, but is winnowed
     # down via set intersection to only the numbers that match.
     #
@@ -25,11 +25,11 @@ class Card():
         self.card_num = None
         self.count = None
 
-        # In each line, we care about three things: 
-        #   (1) the card number, 
+        # In each line, we care about three things:
+        #   (1) the card number,
         #   (2) The winning numbers
         #   (3) The numbers seen under the scratch-off
-        # 
+        #
         # This regex pull each of those into a 'group' via the match object
 
         parse = re.compile(r'Card *(?P<card_num>\d*): (?P<winning>[\d ]*) \| (?P<seen>[\d ]*)$')
@@ -42,7 +42,7 @@ class Card():
 
         # in-place update
         self.winning.intersection_update(self.numbers)
-    
+
 
     def getCardNum(self):
         return self.card_num
@@ -68,7 +68,7 @@ class Card():
             count += card_list[card-1].getCount(card_list)
 
         self.count = count
-        return self.count 
+        return self.count
 
 
 
@@ -80,7 +80,7 @@ def main():
   card_list = []
   for line in inp:
       card_list.append(Card(line))
-  
+
   # Now that we know which cards we have, let's count them up recursively
   total = 0
   for card in card_list:
@@ -88,7 +88,6 @@ def main():
       total += score
 
   print(total)
-        
 
 if __name__ == '__main__':
     main()
