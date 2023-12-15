@@ -2,10 +2,6 @@
 
 import sys
 
-
-#class Game():
-
-
 card_ranks = ['A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2']
 
 hand_ranks = {
@@ -17,7 +13,9 @@ hand_ranks = {
             2 : "One Pair",
             1 : "High Card"
         }
-            
+
+# The Game class contains a list of hands, sorts them, and can display the total winnings
+
 class Game():
     def __init__(self, hands):
         self.hands = hands
@@ -29,15 +27,22 @@ class Game():
             total += ((i+1) * hand.getBid())
         return total
 
-
+# The Hand class takes a hand string (e.g. 32T3K 765), parses the hand, saves
+# the bid, and determines what kind of hand it is.
 
 class Hand():
     def __init__(self, card_line):
 
         hand, bid = card_line.split()
+
         self.hand = hand
         self.bid = int(bid)
+
+        # Build a dict of all possible cards: e.g. {'A': 0, 'K': 0 ... '2': 0}
         self.cards = dict.fromkeys(card_ranks, 0)
+
+        # Counts will contain how many of each card we saw. 
+        #   For 32T3K: {1: '2', 'T', 'K'; 2: '3'}
 
         self.counts = dict.fromkeys(range(1,6))
         for i in self.counts:
@@ -81,6 +86,9 @@ class Hand():
         else:
 #            print('\t\t%s is lt %s' % (hand_ranks[self.getType()], hand_ranks[other.getType()]))
             return True
+
+# I probably didnt' need to implement the rest of these, since it seems sort() 
+#   only uses __lt__
 
     def __lte__(self, other):
         if self.getType() == other.getType():
