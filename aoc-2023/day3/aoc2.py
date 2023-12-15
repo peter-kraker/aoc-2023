@@ -3,8 +3,10 @@
 import sys
 import re
 
-# Base class to represent an item -- has an identifier, and a x / y coordinate
+# Look for 'gears' (i.e. '*'), which have a 'gear ratio' (the part numbers
+# multiplied). The answer is the sum of all gear ratios. 
 
+# Base class to represent an item -- has an identifier, and a x / y coordinate
 class Item():
 
     def __init__(self, iden, x, y):
@@ -35,7 +37,7 @@ class Item():
 #
 
 class Part(Item):
-    
+
     def __init__(self, part_num, start_x, end_x, y):
         self.start_x = start_x
         self.end_x = end_x - 1
@@ -46,7 +48,7 @@ class Part(Item):
         return "Part " + str(self.part_num) + ": (" + str(self.start_x) + "-" + str(self.end_x) + ", " + str(self.y) + ")"
 
     # Part.overlaps() checks if the part's x coordinates overlaps with another
-    # item.
+    # item. Ignores the y-coordinate
     def overlaps(self, item: Item):
         if self.start_x <= item.getX() + 1 and item.getX() - 1 <= self.end_x:
             return True
@@ -88,7 +90,7 @@ def getSymbolsAndParts(inp):
 
     parts_re = re.compile(r'(?P<parts>\d*){,}')     # Only look for digits
     symbols_re = re.compile(r'(\*){,}')             # Only look for '*'
-    
+
     y = 0
     part_list = []
     symbol_list = []
@@ -99,13 +101,13 @@ def getSymbolsAndParts(inp):
         symbols = symbols_re.finditer(line) # ^ do the same for symbols (e.g. *)
 
         for part in parts:
-            
+
             # re.finditer() returns all the non-matches too.
             # We have to check to make sure we only look at the matches.
             #
             # Add matches to the list of parts we found on this line.
 
-            if part.group() != '':          
+            if part.group() != '':
                 part_list.append(Part(part.group(), part.start(), part.end(), y))
 
         for symbol in symbols:
@@ -122,13 +124,13 @@ def checkAdjacencies(symbol_list, part_list):
     gears = []
     for symbol in symbol_list:
 
-        # Because the input seems well-formatted, we can stop after we find 
+        # Because the input seems well-formatted, we can stop after we find
         # A left and right part.
         left = None
         right = None
-        
+
         # Optimization opportunity: sort the lists, ignore parts that have
-        # no possibility of being adjacent to a symbol. 
+        # no possibility of being adjacent to a symbol.
         for part in part_list:
             if part.isNextTo(symbol):
                 if left is None:
