@@ -35,38 +35,49 @@ class Map:
         print(self.ghosts)
         #print(list_of_nodes)
 
-    def followInstructions(self, node, instructions, steps, reports):
+    def followInstructions(self, node, instructions, reports, task_id):
+        # TODO: Save node, instructions, and taskID in reports -- there's
+        #       probably a race condition here, where the number of steps
+        #       isn't aligned with the node.
+        pid = task_id
+        not_done = True
 
-        instruction = instructions[0]
-        next_instructions = instructions[1:]
-        pid = os.getpid()
+        try:
+            steps = sorted(list(reports[pid]), reverse=True)[0]
+            #print('%s\tPicking up where we left off: %s steps' % (pid, steps))
+        except KeyError:
+            steps = 0
+            reports[pid] = set()
 
-        #print('%s\tI\'m at %s having gone %s, going %s -- next up %s' % (pid, node, steps, instruction, next_instructions))
+        while not_done:
+            instruction = instructions[0]
+            instructions = instructions[1:]
 
-        if len(next_instructions) == 0:
-            #print('%s\t\tLooping back, %s' % (pid, self.instructions))
-            next_instructions = self.instructions
+            if len(instructions) == 0:
+                instructions = self.instructions
 
-        match instruction:
-            case 'L':
-                next_node = self.map[node.getLeft()]
-            case 'R':
-                next_node = self.map[node.getRight()]
+            #print('%s\tI\'m at %s having gone %s, going %s -- next up %s' % (pid, node, steps, instruction, instructions))
 
-        if node.getLoc().endswith('Z'):
-            print('%s\tFound the bottom: %s -- it took %s steps' % (pid, node, steps))
-            #print('%s\tReports: %s, updating %s with %s' % (pid, reports, pid, steps), flush=True)
-            try:
-                reports[pid] |= set([steps]) 
-                #old_depth = sorted(list(reports[pid]), reverse=True)[0]
-            except KeyError:
-                reports[pid] = {steps}
-            #print('%s\tReports: %s' % (pid, reports))
-        #    return (1, next_node, instruction + next_instructions, pid)
+            match instruction:
+                case 'L':
+                    node = self.map[node.getLeft()]
+                case 'R':
+                    node = self.map[node.getRight()]
+            steps += 1
+            if node.getLoc().endswith('Z'):
+                #print('%s\tFound the bottom: %s -- it took %s steps' % (pid, node, steps))
+                #print('%s\tReports: %s, updating %s with %s' % (pid, reports, pid, steps), flush=True)
+                try:
+                    reports[pid] |= set([steps]) 
+                    #old_depth = sorted(list(reports[pid]), reverse=True)[0]
+                except KeyError:
+                    reports[pid] = {steps}
+                #print('%s\tReports: %s' % (pid, reports))
+                #return (1, next_node, instruction + next_instructions, pid)
+                not_done = False
 
-        self.followInstructions(next_node, next_instructions, steps + 1, reports)
-
-        #return (self.followInstructions(next_node, next_instructions, steps + 1, reports)[0] + 1, next_node, instruction + next_instructions, pid)
+        return (node, instructions, pid)
+            #return (self.followInstructions(next_node, next_instructions, steps + 1, reports)[0] + 1, next_node, instruction + next_instructions, pid)
 
 # A node holds itself (e.g. 'AAA') and the left/right links.
 # loc, left, right are all Strings.
@@ -125,25 +136,16 @@ def followGhostlyInstructions(a_map):
         reports = manager.dict()
 
         with Pool(processes=number_of_workers) as pool:
-            multiple_results = [pool.apply_async(a_map.followInstructions, (node, a_map.instructions, 0, reports)) for node in current_nodes]
             while not_done:
+                multiple_results = [pool.apply_async(a_map.followInstructions, (node, a_map.instructions, reports, task_id)) for node, task_id in zip(current_nodes, range(number_of_workers))]
                 for res in multiple_results:
-                    res.get()
-                    #(depth, next_node, instructions, pid) = res.get()
-    #                try:
-    #                    print('%s\tDepth: %s -- next: %s, %s' % (pid, depth, next_node, instructions), flush=True)
-    #                    old_depth = sorted(list(reports[pid]), reverse=True)[0]
-    #                    print('%s\tReports: %s, updating %s with %s' % (pid, reports, pid, old_depth + depth), flush=True)
-    #                    reports[pid].add(depth + old_depth)
-    #                except KeyError:
-    #                    print('%s\tAdding %s to reports, with %s steps' % (pid, pid, depth))
-    #                    reports[pid] = {depth}
-                    print(reports)
+                    (next_node, instructions, task_id) = res.get()
+                    #print(reports)
                     same = set.intersection(*reports.values())
                 if same != set():
                     print('we\'re done! %s' % (same))
                     break
-                multiple_results = [pool.apply_async(a_map.followInstructions, (next_node, instructions, depth, reports)) for node in current_nodes]
+                #multiple_results = [pool.apply_async(a_map.followInstructions, (next_node, instructions, reports, task_id)) for node in current_nodes]
 
 
 
